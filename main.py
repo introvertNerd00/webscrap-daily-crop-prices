@@ -50,11 +50,15 @@ print(data)
 def insert_data_to_mssql(data):
     # Define the connection string using environment variables
     conn_str = (
-        f"DRIVER={{ODBC Driver 17 for SQL Server}};"
-        f"SERVER={os.getenv('DB_SERVER')};"
-        f"DATABASE={os.getenv('DB_NAME')};"
-        f"UID={os.getenv('DB_USER')};"
-        f"PWD={os.getenv('DB_PASSWORD')}"
+        # f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+        # f"SERVER={os.getenv('DB_SERVER')};"
+        # f"DATABASE={os.getenv('DB_NAME')};"
+        # f"UID={os.getenv('DB_USER')};"
+        # f"PWD={os.getenv('DB_PASSWORD')}"
+        "DRIVER={SQL Server};"
+        "SERVER=DESKTOP-H3O6FTO\\SQLEXPRESS;"
+        "DATABASE=AgriTech;"
+        "Trusted_Connection=yes;"
     )
     # Establish the connection
     conn = pyodbc.connect(conn_str)
@@ -65,10 +69,16 @@ def insert_data_to_mssql(data):
     
     # Insert data into the table
     for row in data:
-        cursor.execute('''
-        INSERT INTO crop_prices (city, date, crop_name, price)
-        VALUES (?, ?, ?, ?)
-        ''', row['Location'], current_date, row['Item'], float(row['New Price']))
+        try:
+            print(f"Attempting to convert New Price to float: {row['New Price']}")
+            new_price = float(row['New Price'])
+            cursor.execute('''
+            INSERT INTO crop_prices (city, date, crop_name, price)
+            VALUES (?, ?, ?, ?)
+            ''', row['Location'], current_date, row['Item'], new_price)
+        except ValueError as e:
+            print(f"Error converting New Price to float: {e}")
+    
     
     # Commit the transaction
     conn.commit()
