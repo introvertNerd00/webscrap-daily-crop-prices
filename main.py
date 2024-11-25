@@ -23,15 +23,17 @@ data = []
 
 # Iterate over the rows
 for row in rows:
-    # Split the row by spaces from the right side to get the values
-    values = row.rsplit(maxsplit=4)
+    # Split the row by spaces from the right side to get the last three columns
+    values = row.rsplit(maxsplit=3)
+    # Further split the remaining part to separate the location and item
+    location, item = values[0].split(maxsplit=1)
     # Create a dictionary for the row
     row_dict = {
-        "Location": values[0],
-        "Item": values[1],
-        "Old Price": values[2],
-        "New Price": values[3],
-        "Change": values[4]
+        "Location": location,
+        "Item": item,
+        "Old Price": values[1],
+        "New Price": values[2],
+        "Change": values[3]
     }
     # Add the dictionary to the data list
     data.append(row_dict)
