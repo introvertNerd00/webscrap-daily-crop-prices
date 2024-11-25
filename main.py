@@ -1,9 +1,15 @@
 import os
+import pyodbc
+from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
+from dotenv import load_dotenv
+
+# Load environment variables from a .env file
+load_dotenv()
 
 os.environ['PATH'] += r"D:\Projects\python\selenium_drivers"
 
@@ -40,3 +46,34 @@ for row in rows:
 
 print(data)
 # data now contains the list of dictionaries
+
+def insert_data_to_mssql(data):
+    # Define the connection string using environment variables
+    conn_str = (
+        f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+        f"SERVER={os.getenv('DB_SERVER')};"
+        f"DATABASE={os.getenv('DB_NAME')};"
+        f"UID={os.getenv('DB_USER')};"
+        f"PWD={os.getenv('DB_PASSWORD')}"
+    )
+    # Establish the connection
+    conn = pyodbc.connect(conn_str)
+    cursor = conn.cursor()
+    
+    # Get the current date
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    
+    # Insert data into the table
+    for row in data:
+        cursor.execute('''
+        INSERT INTO crop_prices (city, date, crop_name, price)
+        VALUES (?, ?, ?, ?)
+        ''', row['Location'], current_date, row['Item'], float(row['New Price']))
+    
+    # Commit the transaction
+    conn.commit()
+    # Close the connection
+    conn.close()
+
+# Call the function to insert data into MSSQL
+insert_data_to_mssql(data)
